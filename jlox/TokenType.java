@@ -10,7 +10,7 @@ public enum TokenType {
 	LESS, LESS_EQUAL, 
 
 	// Literal
-	LITERAL, STRING, NUMBER,
+	IDENTIFIER, STRING, NUMBER,
 
 	// Keywords
 	PRINT, AND, OR, IF, ELSE, FOR, WHILE, FUN, RETURN,
