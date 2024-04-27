@@ -39,6 +39,35 @@ class Lexer {
 			case '/':	this.addToken(TokenType.SLASH); break;
 			case ';':	this.addToken(TokenType.SEMICOLON); break;
 
+			case '=':
+				if (this.peek() == '=') {
+					this.addToken(TokenType.EQUAL_EQUAL);
+				} else {
+					this.addToken(TokenType.EQUAL);
+				};
+				break;
+			case '!':
+				if (this.peek() == '=') {
+					this.addToken(TokenType.BANG_EQUAL);
+				} else {
+					this.addToken(TokenType.BANG);
+				};
+				break;
+			case '>':
+				if (this.peek() == '=') {
+					this.addToken(TokenType.GREATER_EQUAL);
+				} else {
+					this.addToken(TokenType.GREATER);
+				};
+				break;
+			case '<':
+				if (this.peek() == '=') {
+					this.addToken(TokenType.LESS_EQUAL);
+				} else {
+					this.addToken(TokenType.LESS);
+				};
+				break;
+
 			default:
 				System.exit(201);
 				break;
@@ -56,6 +85,13 @@ class Lexer {
 
 	private char advance() {
 		return this.source.charAt(this.curr++);
+	}
+
+	private char peek() {
+		if (this.isEOF()) {
+			return '\0';
+		};
+		return this.source.charAt(this.curr);
 	}
 
 	private boolean isEOF() {
