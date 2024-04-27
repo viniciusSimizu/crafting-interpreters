@@ -68,11 +68,34 @@ class Lexer {
 				};
 				break;
 
+			case '"':	this.string(); break;
+
 			default:
 				System.exit(201);
 				break;
 		}
 	}
+
+	private void string() {
+		this.start = this.curr;
+		while (!this.isEOF() && this.peek() != '"') {
+			if (this.peek() == '\n') {
+				++this.line;
+			};
+
+			this.advance();
+		};
+
+		if (this.isEOF()) {
+			System.exit(201);
+			return;
+		};
+
+		this.advance();
+
+		String literal = this.source.substring(this.start + 1, this.curr - 1);
+		this.addToken(TokenType.STRING, literal);
+	};
 
 	private void addToken(TokenType type) {
 		this.addToken(type, null);
