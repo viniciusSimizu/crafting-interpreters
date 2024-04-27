@@ -71,6 +71,11 @@ class Lexer {
 			case '"':	this.string(); break;
 
 			default:
+				if (this.isDigit(chr)) {
+					this.number();
+					break;
+				};
+
 				System.exit(201);
 				break;
 		}
@@ -97,6 +102,18 @@ class Lexer {
 		this.addToken(TokenType.STRING, literal);
 	};
 
+	private void number() {
+		this.start = this.curr - 1;
+		while (this.isDigit(this.peek())) this.advance();
+
+		if (this.peek() == '.') {
+			while (this.isDigit(this.peek())) this.advance();
+		};
+
+		String literal = this.source.substring(this.start, this.curr);
+		this.addToken(TokenType.NUMBER, Double.parseDouble(literal));
+	};
+
 	private void addToken(TokenType type) {
 		this.addToken(type, null);
 	}
@@ -115,6 +132,13 @@ class Lexer {
 			return '\0';
 		};
 		return this.source.charAt(this.curr);
+	}
+
+	private boolean isDigit(char chr) {
+		if (chr >= '0' && chr <= '9') {
+			return true;
+		};
+		return false;
 	}
 
 	private boolean isEOF() {
