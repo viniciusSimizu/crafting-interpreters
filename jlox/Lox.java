@@ -32,7 +32,7 @@ public class Lox {
 		BufferedReader reader = new BufferedReader(stream);
 
 		while (true) {
-			System.out.println("> ");
+			System.out.print("input: ");
 			String line = reader.readLine();
 			if (line == null) break;
 			run(line);

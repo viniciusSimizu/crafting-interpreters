@@ -14,6 +14,7 @@ class Lexer {
 
 	public List<Token> scanTokens() {
 		while (!this.isEOF()) {
+			this.start = this.curr;
 			this.scanToken();
 		}
 		this.addToken(TokenType.EOF);
@@ -42,28 +43,28 @@ class Lexer {
 			case ';':	this.addToken(TokenType.SEMICOLON); break;
 
 			case '=':
-				if (this.peek() == '=') {
+				if (this.match('=')) {
 					this.addToken(TokenType.EQUAL_EQUAL);
 				} else {
 					this.addToken(TokenType.EQUAL);
 				};
 				break;
 			case '!':
-				if (this.peek() == '=') {
+				if (this.match('=')) {
 					this.addToken(TokenType.BANG_EQUAL);
 				} else {
 					this.addToken(TokenType.BANG);
 				};
 				break;
 			case '>':
-				if (this.peek() == '=') {
+				if (this.match('=')) {
 					this.addToken(TokenType.GREATER_EQUAL);
 				} else {
 					this.addToken(TokenType.GREATER);
 				};
 				break;
 			case '<':
-				if (this.peek() == '=') {
+				if (this.match('=')) {
 					this.addToken(TokenType.LESS_EQUAL);
 				} else {
 					this.addToken(TokenType.LESS);
@@ -110,7 +111,8 @@ class Lexer {
 		this.start = this.curr - 1;
 		while (this.isDigit(this.peek())) this.advance();
 
-		if (this.peek() == '.') {
+		if (this.peek() == '.' && this.isDigit(this.peekNext())) {
+			this.advance();
 			while (this.isDigit(this.peek())) this.advance();
 		};
 
@@ -136,6 +138,14 @@ class Lexer {
 	private char advance() {
 		return this.source.charAt(this.curr++);
 	}
+
+	private boolean match(char chr) {
+		if (this.peek() == chr) {
+			this.advance();
+			return true;
+		};
+		return false;
+	};
 
 	private char peek() {
 		if (this.isEOF()) {
