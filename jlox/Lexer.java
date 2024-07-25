@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class Lexer {
 	private int start;
@@ -7,6 +9,28 @@ class Lexer {
 	private int line = 1;
 	private final String source;
 	private final List<Token> tokens = new ArrayList<>();
+
+	private static final Map<String, TokenType> keywords;
+	static {
+		keywords = new HashMap<>();
+		keywords.put("print", TokenType.PRINT);
+		keywords.put("and", TokenType.AND);
+		keywords.put("or", TokenType.OR);
+		keywords.put("if", TokenType.IF);
+		keywords.put("else", TokenType.ELSE);
+		keywords.put("for", TokenType.FOR);
+		keywords.put("while", TokenType.WHILE);
+		keywords.put("fun", TokenType.FUN);
+		keywords.put("return", TokenType.RETURN);
+		keywords.put("class", TokenType.CLASS);
+		keywords.put("this", TokenType.THIS);
+		keywords.put("super", TokenType.SUPER);
+		keywords.put("true", TokenType.TRUE);
+		keywords.put("false", TokenType.FALSE);
+		keywords.put("var", TokenType.VAR);
+		keywords.put("nil", TokenType.NIL);
+
+	}
 
 	public Lexer(String source) {
 		this.source = source;
@@ -90,7 +114,7 @@ class Lexer {
 	}
 
 	private void string() {
-		this.start = this.curr;
+		this.start = this.curr - 1;
 		while (!this.isEOF() && this.peek() != '"') {
 			if (this.peek() == '\n') ++this.line;
 			this.advance();
@@ -123,7 +147,10 @@ class Lexer {
 	private void identifier() {
 		this.start = this.curr - 1;
 		while (this.isAlphaNumeric(this.peek())) this.advance();
-		this.addToken(TokenType.IDENTIFIER);
+		String lexeme = this.source.substring(this.start, this.curr);
+		TokenType token = Lexer.keywords.get(lexeme);
+		if (token == null) token = TokenType.IDENTIFIER;
+		this.addToken(token);
 	};
 
 	private void addToken(TokenType type) {
@@ -169,7 +196,7 @@ class Lexer {
 	}
 
 	private boolean isAlpha(char chr) {
-		if ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z')) {
+		if (chr >= 'a' && chr <= 'z' || chr >= 'A' && chr <= 'Z' || chr == '_') {
 			return true;
 		};
 		return false;
