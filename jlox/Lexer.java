@@ -108,7 +108,7 @@ class Lexer {
 					break;
 				};
 
-				System.exit(201);
+				Lox.error(this.line, "Unexpected character.");
 				break;
 		}
 	}
@@ -121,7 +121,7 @@ class Lexer {
 		};
 
 		if (this.isEOF()) {
-			System.exit(201);
+			Lox.error(this.line, "Unterminated string.");
 			return;
 		};
 

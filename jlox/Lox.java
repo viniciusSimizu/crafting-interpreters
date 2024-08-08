@@ -8,6 +8,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+	private static boolean hadError;
+
 	public static void main(String[] args) throws IOException {
 		Expr expression = new Expr.Binary(
 				new Expr.Unary(
@@ -52,6 +54,7 @@ public class Lox {
 				break;
 			}
 			run(line);
+			Lox.hadError = false;
 		};
 	};
 
@@ -63,4 +66,21 @@ public class Lox {
 			System.out.println(token);
 		};
 	};
+
+	public static void error(int line, String msg) {
+		Lox.report(line, "", msg);
+	}
+
+	public static void error(Token token, String msg) {
+		if (token.type == TokenType.EOF) {
+			Lox.report(token.line, " at end", msg);
+		} else {
+			Lox.report(token.line, String.format(" at '%s'", token.lexeme), msg);
+		}
+	}
+
+	private static void report(int line, String where, String msg) {
+		System.err.println(String.format("[line %d] Error %s: %s", line, where, msg));
+		Lox.hadError = true;
+	}
 };
