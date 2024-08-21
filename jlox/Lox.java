@@ -8,7 +8,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Lox {
+	private static final Interpreter interpreter = new Interpreter();
+
 	private static boolean hadError;
+	private static boolean hadRuntimeError;
 
 	public static void main(String[] args) throws IOException {
 		Expr expression = new Expr.Binary(
@@ -40,6 +43,9 @@ public class Lox {
 		byte[] buff = Files.readAllBytes(path);
 		String source = new String(buff, Charset.forName("UTF-8"));
 		run(source);
+
+		if (hadError) System.exit(65);
+		if (hadRuntimeError) System.exit(70);
 	};
 
 	private static void runRepl() throws IOException {
@@ -54,7 +60,7 @@ public class Lox {
 				break;
 			}
 			run(line);
-			Lox.hadError = false;
+			hadError = false;
 		};
 	};
 
@@ -62,25 +68,35 @@ public class Lox {
 		Lexer lexer = new Lexer(source);
 		List<Token> tokens = lexer.scanTokens();
 
-		for (Token token : tokens) {
-			System.out.println(token);
-		};
+		Parser parser = new Parser(tokens);
+		Expr expression = parser.parse();
+
+		if (hadError) return;
+
+		interpreter.interpret(expression);
 	};
 
 	public static void error(int line, String msg) {
-		Lox.report(line, "", msg);
+		report(line, "", msg);
 	}
 
 	public static void error(Token token, String msg) {
 		if (token.type == TokenType.EOF) {
-			Lox.report(token.line, " at end", msg);
+			report(token.line, " at end", msg);
 		} else {
-			Lox.report(token.line, String.format(" at '%s'", token.lexeme), msg);
+			report(token.line, String.format(" at '%s'", token.lexeme), msg);
 		}
 	}
 
 	private static void report(int line, String where, String msg) {
 		System.err.println(String.format("[line %d] Error %s: %s", line, where, msg));
-		Lox.hadError = true;
+		hadError = true;
+	}
+
+	public static void runtimeError(RuntimeError error) {
+		System.err.println(String.format("%s\n[line %d]",
+					error.getMessage(),
+					error.token.literal));
+		hadRuntimeError = true;
 	}
 };
