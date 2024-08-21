@@ -14,7 +14,7 @@ abstract class Expr {
 
 		@Override
 		public <T> T accept(ExprVisitor<T> visitor) {
-			return visitor.visitBinary(this);
+			return visitor.visitBinaryExpr(this);
 		}
 	}
 
@@ -29,7 +29,7 @@ abstract class Expr {
 
 		@Override
 		public <T> T accept(ExprVisitor<T> visitor) {
-			return visitor.visitUnary(this);
+			return visitor.visitUnaryExpr(this);
 		}
 	}
 
@@ -42,7 +42,7 @@ abstract class Expr {
 
 		@Override
 		public <T> T accept(ExprVisitor<T> visitor) {
-			return visitor.visitLiteral(this);
+			return visitor.visitLiteralExpr(this);
 		}
 	}
 
@@ -55,7 +55,7 @@ abstract class Expr {
 
 		@Override
 		public <T> T accept(ExprVisitor<T> visitor) {
-			return visitor.visitGrouping(this);
+			return visitor.visitGroupingExpr(this);
 		}
 	}
 }

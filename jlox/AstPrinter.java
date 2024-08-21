@@ -17,24 +17,24 @@ public class AstPrinter implements ExprVisitor<String> {
 	}
 
 	@Override
-	public String visitBinary(Expr.Binary expr) {
+	public String visitBinaryExpr(Expr.Binary expr) {
 		return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
 	}
 
 	@Override
-	public String visitUnary(Expr.Unary expr) {
+	public String visitUnaryExpr(Expr.Unary expr) {
 		return this.parenthesize(expr.operator.lexeme, expr.right);
 	}
 
 	@Override
-	public String visitLiteral(Expr.Literal expr) {
+	public String visitLiteralExpr(Expr.Literal expr) {
 		if (expr.value == null) return "nil";
 		if (expr.value instanceof String) return "\"" + expr.value.toString() + "\"";
 		return expr.value.toString();
 	}
 
 	@Override
-	public String visitGrouping(Expr.Grouping expr) {
+	public String visitGroupingExpr(Expr.Grouping expr) {
 		return this.parenthesize("group", expr.expression);
 	}
 }
