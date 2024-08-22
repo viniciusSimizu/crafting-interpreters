@@ -1,4 +1,4 @@
-public class AstPrinter implements ExprVisitor<String> {
+public class AstPrinter implements Expr.Visitor<String> {
 	public String print(Expr expr) {
 		return expr.accept(this);
 	}

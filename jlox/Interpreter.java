@@ -1,11 +1,31 @@
-public class Interpreter implements ExprVisitor<Object> {
-	public void interpret(Expr expression) {
+import java.util.List;
+
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+	public void interpret(List<Stmt> statements) {
 		try {
-			Object value = this.evaluate(expression);
-			System.out.println(this.stringfy(value));
+			for (Stmt statement : statements) {
+				this.execute(statement);
+			}
 		} catch (RuntimeError error) {
 			Lox.runtimeError(error);
 		}
+	}
+
+	private void execute(Stmt statement) {
+		statement.accept(this);
+	}
+
+	@Override
+	public Void visitExpressionStmt(Stmt.Expression stmt) {
+		this.evaluate(stmt.expression);
+		return null;
+	}
+
+	@Override
+	public Void visitPrintStmt(Stmt.Print stmt) {
+		Object value = this.evaluate(stmt.expression);
+		System.out.println(this.stringfy(value));
+		return null;
 	}
 
 	@Override
@@ -35,8 +55,8 @@ public class Interpreter implements ExprVisitor<Object> {
 					return (double)left + (double)right;
 				}
 
-				if (left instanceof String && right instanceof String) {
-					return (String)left + (String)right;
+				if (left instanceof String) {
+					return (String)left + this.concatValue(right);
 				}
 
 				throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
@@ -49,6 +69,10 @@ public class Interpreter implements ExprVisitor<Object> {
 				return (double)left * (double)right;
 			case SLASH:
 				this.checkNumberOperands(expr.operator, left, right);
+				if ((double)right == 0) {
+					throw new RuntimeError(expr.operator, "Number cannot be divided by zero.");
+				}
+
 				return (double)left / (double)right;
 			default:
 				break;
@@ -122,5 +146,10 @@ public class Interpreter implements ExprVisitor<Object> {
 		}
 
 		return value.toString();
+	}
+
+	private String concatValue(Object value) {
+		if (value == null) return "";
+		return this.stringfy(value);
 	}
 }

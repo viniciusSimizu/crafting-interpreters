@@ -1,5 +1,5 @@
 abstract class Expr {
-	public abstract <T> T accept(ExprVisitor<T> visitor);
+	public abstract <T> T accept(Visitor<T> visitor);
 
 	static class Binary extends Expr {
 		public final Expr left;
@@ -13,7 +13,7 @@ abstract class Expr {
 		}
 
 		@Override
-		public <T> T accept(ExprVisitor<T> visitor) {
+		public <T> T accept(Visitor<T> visitor) {
 			return visitor.visitBinaryExpr(this);
 		}
 	}
@@ -28,7 +28,7 @@ abstract class Expr {
 		}
 
 		@Override
-		public <T> T accept(ExprVisitor<T> visitor) {
+		public <T> T accept(Visitor<T> visitor) {
 			return visitor.visitUnaryExpr(this);
 		}
 	}
@@ -41,7 +41,7 @@ abstract class Expr {
 		}
 
 		@Override
-		public <T> T accept(ExprVisitor<T> visitor) {
+		public <T> T accept(Visitor<T> visitor) {
 			return visitor.visitLiteralExpr(this);
 		}
 	}
@@ -54,8 +54,15 @@ abstract class Expr {
 		}
 
 		@Override
-		public <T> T accept(ExprVisitor<T> visitor) {
+		public <T> T accept(Visitor<T> visitor) {
 			return visitor.visitGroupingExpr(this);
 		}
+	}
+
+	static interface Visitor<T> {
+		T visitBinaryExpr(Binary expr);
+		T visitUnaryExpr(Unary expr);
+		T visitLiteralExpr(Literal expr);
+		T visitGroupingExpr(Grouping expr);
 	}
 }
