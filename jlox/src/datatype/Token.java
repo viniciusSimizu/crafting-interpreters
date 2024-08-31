@@ -1,3 +1,5 @@
+package src.datatype;
+
 public class Token {
 	public final TokenType type;
 	public final String lexeme;

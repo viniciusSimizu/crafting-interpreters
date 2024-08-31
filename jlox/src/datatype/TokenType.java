@@ -1,3 +1,5 @@
+package src.datatype;
+
 public enum TokenType {
 	// Single character token
 	OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,

@@ -1,4 +1,10 @@
+package src;
+
 import java.util.List;
+
+import src.datatype.Expr;
+import src.datatype.Stmt;
+import src.datatype.Token;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	public void interpret(List<Stmt> statements) {

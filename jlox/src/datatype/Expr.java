@@ -1,12 +1,14 @@
-abstract class Expr {
+package src.datatype;
+
+public abstract class Expr {
 	public abstract <T> T accept(Visitor<T> visitor);
 
-	static class Binary extends Expr {
+	public static class Binary extends Expr {
 		public final Expr left;
 		public final Token operator;
 		public final Expr right;
 
-		Binary(Expr left, Token operator, Expr right) {
+		public Binary(Expr left, Token operator, Expr right) {
 			this.left = left;
 			this.operator = operator;
 			this.right = right;
@@ -18,11 +20,11 @@ abstract class Expr {
 		}
 	}
 
-	static class Unary extends Expr {
+	public static class Unary extends Expr {
 		public final Token operator;
 		public final Expr right;
 
-		Unary(Token operator, Expr right) {
+		public Unary(Token operator, Expr right) {
 			this.operator = operator;
 			this.right = right;
 		}
@@ -33,10 +35,10 @@ abstract class Expr {
 		}
 	}
 
-	static class Literal extends Expr {
+	public static class Literal extends Expr {
 		public final Object value;
 
-		Literal(Object value) {
+		public Literal(Object value) {
 			this.value = value;
 		}
 
@@ -46,10 +48,10 @@ abstract class Expr {
 		}
 	}
 
-	static class Grouping extends Expr {
+	public static class Grouping extends Expr {
 		public final Expr expression;
 
-		Grouping(Expr expression) {
+		public Grouping(Expr expression) {
 			this.expression = expression;
 		}
 
@@ -59,7 +61,7 @@ abstract class Expr {
 		}
 	}
 
-	static interface Visitor<T> {
+	public static interface Visitor<T> {
 		T visitBinaryExpr(Binary expr);
 		T visitUnaryExpr(Unary expr);
 		T visitLiteralExpr(Literal expr);

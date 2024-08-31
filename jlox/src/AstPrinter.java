@@ -1,3 +1,7 @@
+package src;
+
+import src.datatype.Expr;
+
 public class AstPrinter implements Expr.Visitor<String> {
 	public String print(Expr expr) {
 		return expr.accept(this);

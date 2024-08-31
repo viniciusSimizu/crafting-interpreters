@@ -1,5 +1,12 @@
+package src;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import src.datatype.Expr;
+import src.datatype.Stmt;
+import src.datatype.Token;
+import src.datatype.TokenType;
 
 public class Parser {
 	private final List<Token> tokens;

@@ -1,3 +1,7 @@
+package src;
+
+import src.datatype.Token;
+
 public class RuntimeError extends RuntimeException {
 	public final Token token;
 
