@@ -1,20 +1,20 @@
 package src.datatype;
 
 public class Token {
-	public final TokenType type;
-	public final String lexeme;
-	public final Object literal;
-	public final int line;
+  public final TokenType type;
+  public final String lexeme;
+  public final Object literal;
+  public final int line;
 
-	public Token(TokenType type, String lexeme, Object literal, int line) {
-		this.type = type;
-		this.lexeme = lexeme;
-		this.literal = literal;
-		this.line = line;
-	};
+  public Token(TokenType type, String lexeme, Object literal, int line) {
+    this.type = type;
+    this.lexeme = lexeme;
+    this.literal = literal;
+    this.line = line;
+  };
 
-	@Override
-	public String toString() {
-	    return String.format("%s at %d: %s", this.lexeme, line, this.literal);
-	}
+  @Override
+  public String toString() {
+    return String.format("%s at %d: %s", this.lexeme, line, this.literal);
+  }
 };

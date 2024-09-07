@@ -9,182 +9,227 @@ import src.datatype.Token;
 import src.datatype.TokenType;
 
 public class Parser {
-	private final List<Token> tokens;
-	private int current = 0;
+  private final List<Token> tokens;
+  private int current = 0;
 
-	public Parser(List<Token> tokens) {
-		this.tokens = tokens;
-	}
+  public Parser(List<Token> tokens) {
+    this.tokens = tokens;
+  }
 
-	public List<Stmt> parse() {
-		List<Stmt> expressions = new ArrayList<>();
-		while (!this.isAtEnd()) {
-			expressions.add(this.statement());
-		}
+  public List<Stmt> parse() {
+    List<Stmt> expressions = new ArrayList<>();
+    while (!isAtEnd()) {
+      expressions.add(declaration());
+    }
 
-		return expressions;
-	}
+    return expressions;
+  }
 
-	private Stmt statement() {
-		if (this.match(TokenType.PRINT)) {
-			return this.printStatement();
-		}
-		return this.expressionStatement();
-	}
+  private Stmt declaration() {
+    try {
+      if (match(TokenType.VAR)) {
+	return varDeclaration();
+      }
+      return statement();
 
-	private Stmt printStatement() {
-		Expr expr = this.expression();
-		this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
-		return new Stmt.Print(expr);
-	}
+    } catch (ParserError error) {
+      synchronize();
+      return null;
+    }
+  }
 
-	private Stmt expressionStatement() {
-		Expr expr = this.expression();
-		this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
-		return new Stmt.Expression(expr);
-	}
+  private Stmt varDeclaration() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+    Expr initializer = null;
 
-	private Expr expression() {
-		return this.equality();
-	}
+    if (match(TokenType.EQUAL)) {
+      initializer = this.expression();
+    }
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Var(name, initializer);
+  }
 
-	private Expr equality() {
-		Expr expr = this.comparison();
-		while (this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
-			Token operator = this.previous();
-			Expr right = this.comparison();
-			expr = new Expr.Binary(expr, operator, right);
-		}
+  private Stmt statement() {
+    if (match(TokenType.PRINT)) {
+      return printStatement();
+    }
+    return expressionStatement();
+  }
 
-		return expr;
-	}
+  private Stmt printStatement() {
+    Expr expr = expression();
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Print(expr);
+  }
 
-	private Expr comparison() {
-		Expr expr = this.term();
-		while (this.match(TokenType.LESS_EQUAL, TokenType.LESS, TokenType.GREATER, TokenType.GREATER_EQUAL)) {
-			Token operator = this.previous();
-			Expr right = this.term();
-			expr = new Expr.Binary(expr, operator, right);
-		}
+  private Stmt expressionStatement() {
+    Expr expr = expression();
+    consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Expression(expr);
+  }
 
-		return expr;
-	}
+  private Expr expression() {
+    return assignment();
+  }
 
-	private Expr term() {
-		Expr expr = this.factor();
-		while (this.match(TokenType.PLUS, TokenType.MINUS)) {
-			Token operator = this.previous();
-			Expr right = this.factor();
-			expr = new Expr.Binary(expr, operator, right);
-		}
+  private Expr assignment() {
+    Expr expr = equality();
+    if (match(TokenType.EQUAL)) {
+      Token equals = previous();
+      Expr value = this.expression();
 
-		return expr;
-	}
+      if (!(expr instanceof Expr.Variable)) {
+	error(equals, "Invalid assignment target.");
+      }
 
-	private Expr factor() {
-		Expr expr = this.unary();
-		while (this.match(TokenType.STAR, TokenType.SLASH)) {
-			Token operator = this.previous();
-			Expr right = this.unary();
-			expr = new Expr.Binary(expr, operator, right);
-		}
+      Expr.Variable var = (Expr.Variable) expr;
+      return new Expr.Assign(var.name, value);
+    }
 
-		return expr;
-	}
+    return expr;
+  }
 
-	private Expr unary() {
-		if (this.match(TokenType.BANG, TokenType.MINUS)) {
-			Token operator = this.previous();
-			Expr right = this.unary();
-			return new Expr.Unary(operator, right);
-		}
-		return this.primary();
-	}
+  private Expr equality() {
+    Expr expr = comparison();
+    while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+      Token operator = previous();
+      Expr right = comparison();
+      expr = new Expr.Binary(expr, operator, right);
+    }
 
-	private Expr primary() {
-		if (this.match(TokenType.TRUE)) return new Expr.Literal(true);
-		if (this.match(TokenType.FALSE)) return new Expr.Literal(false);
-		if (this.match(TokenType.NIL)) return new Expr.Literal(null);
+    return expr;
+  }
 
-		if (this.match(TokenType.NUMBER, TokenType.STRING)) {
-			return new Expr.Literal(this.previous().literal);
-		}
+  private Expr comparison() {
+    Expr expr = term();
+    while (match(TokenType.LESS_EQUAL, TokenType.LESS, TokenType.GREATER, TokenType.GREATER_EQUAL)) {
+      Token operator = previous();
+      Expr right = term();
+      expr = new Expr.Binary(expr, operator, right);
+    }
 
-		if (this.match(TokenType.OPEN_PAREN)) {
-			Expr expr = this.expression();
-			consume(TokenType.CLOSE_PAREN, "Expect ')' after expression.");
-			return new Expr.Grouping(expr);
-		}
+    return expr;
+  }
 
-		throw	this.error(this.peek(), "Expect expression.");
-	}
+  private Expr term() {
+    Expr expr = factor();
+    while (match(TokenType.PLUS, TokenType.MINUS)) {
+      Token operator = previous();
+      Expr right = factor();
+      expr = new Expr.Binary(expr, operator, right);
+    }
 
-	private void synchronize() {
-		this.advance();
+    return expr;
+  }
 
-		while (!this.isAtEnd()) {
-			if (this.previous().type == TokenType.SEMICOLON) return;
+  private Expr factor() {
+    Expr expr = unary();
+    while (match(TokenType.STAR, TokenType.SLASH)) {
+      Token operator = previous();
+      Expr right = unary();
+      expr = new Expr.Binary(expr, operator, right);
+    }
 
-			switch (this.peek().type) {
-				case CLASS:
-				case FUN:
-				case VAR:
-				case FOR:
-				case IF:
-				case WHILE:
-				case PRINT:
-				case RETURN:
-					return;
-				default:
-					break;
-			}
+    return expr;
+  }
 
-			this.advance();
-		}
-	}
+  private Expr unary() {
+    if (match(TokenType.BANG, TokenType.MINUS)) {
+      Token operator = previous();
+      Expr right = unary();
+      return new Expr.Unary(operator, right);
+    }
+    return primary();
+  }
 
-	private boolean match(TokenType... types) {
-		for (TokenType type : types) {
-			if (this.check(type)) {
-				this.advance();
-				return true;
-			}
-		}
+  private Expr primary() {
+    if (match(TokenType.TRUE)) return new Expr.Literal(true);
+    if (match(TokenType.FALSE)) return new Expr.Literal(false);
+    if (match(TokenType.NIL)) return new Expr.Literal(null);
 
-		return false;
-	}
+    if (match(TokenType.NUMBER, TokenType.STRING)) {
+      return new Expr.Literal(previous().literal);
+    }
 
-	private boolean check(TokenType type) {
-		if (this.isAtEnd()) return false;
-		return this.peek().type == type;
-	}
+    if (match(TokenType.VAR)) {
+      return new Expr.Variable(previous());
+    }
 
-	private Token advance() {
-		if (this.isAtEnd()) ++this.current;
-		return this.previous();
-	}
+    if (match(TokenType.OPEN_PAREN)) {
+      Expr expr = expression();
+      consume(TokenType.CLOSE_PAREN, "Expect ')' after expression.");
+      return new Expr.Grouping(expr);
+    }
 
-	private Token consume(TokenType type, String msg) {
-		if (this.check(type)) return this.advance();
-		throw this.error(this.peek(), msg);
-	}
+    throw error(peek(), "Expect expression.");
+  }
 
-	private Token peek() {
-		return this.tokens.get(this.current);
-	}
+  private void synchronize() {
+    advance();
 
-	private Token previous() {
-		return this.tokens.get(this.current - 1);
-	}
+    while (!isAtEnd()) {
+      if (previous().type == TokenType.SEMICOLON) return;
 
-	private boolean isAtEnd() {
-		return this.peek().type == TokenType.EOF;
-	}
+      switch (peek().type) {
+	case CLASS:
+	case FUN:
+	case VAR:
+	case FOR:
+	case IF:
+	case WHILE:
+	case PRINT:
+	case RETURN:
+	  return;
+	default:
+	  break;
+      }
 
-	private ParserError error(Token token, String msg) {
-		Lox.error(token, msg);
-		return new ParserError();
-	}
+      advance();
+    }
+  }
 
-	private static class ParserError extends RuntimeException {}
+  private boolean match(TokenType... types) {
+    for (TokenType type : types) {
+      if (check(type)) {
+	advance();
+	return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean check(TokenType type) {
+    if (isAtEnd()) return false;
+    return peek().type == type;
+  }
+
+  private Token advance() {
+    if (!isAtEnd()) ++current;
+    return previous();
+  }
+
+  private Token consume(TokenType type, String msg) {
+    if (check(type)) return advance();
+    throw error(peek(), msg);
+  }
+
+  private Token peek() {
+    return tokens.get(current);
+  }
+
+  private Token previous() {
+    return tokens.get(current - 1);
+  }
+
+  private boolean isAtEnd() {
+    return peek().type == TokenType.EOF;
+  }
+
+  private ParserError error(Token token, String msg) {
+    Lox.error(token, msg);
+    return new ParserError();
+  }
+
+  private static class ParserError extends RuntimeException {}
 }

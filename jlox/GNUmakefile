@@ -7,21 +7,23 @@ BINPAT=$(BINDIR)/$(SRCDIR)/%.class
 SRCS=$(shell find $(SRCDIR) -name *.java -type f)
 BINS=$(SRCS:$(SRCPAT)=$(BINPAT))
 
+JFLAGS=
+
 ENTRY=Lox
-ARGS=
+ARGS=../script.lox
 
 .PHONY: run
 
 all: $(BINDIR) $(BINS)
 
 $(BINPAT): $(SRCPAT)
-	javac -d $(BINDIR) $<
+	javac $(JFLAGS) -d $(BINDIR) $<
 
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
 run:
-	@java -cp $(BINDIR) $(SRCDIR).$(ENTRY) $(ARGS)
+	java -cp $(BINDIR) $(SRCDIR).$(ENTRY) $(ARGS)
 
 clean:
 	rm -rf $(BINDIR)
