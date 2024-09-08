@@ -1,5 +1,7 @@
 package src.datatype;
 
+import java.util.List;
+
 public abstract class Expr {
   public abstract <T> T accept(Visitor<T> visitor);
 
@@ -106,6 +108,23 @@ public abstract class Expr {
     }
   }
 
+  public static class Call extends Expr {
+    public Expr callee;
+    public Token paren;
+    public List<Expr> args;
+
+    public Call(Expr callee, Token paren, List<Expr> args) {
+      this.callee = callee;
+      this.paren = paren;
+      this.args = args;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitCallExpr(this);
+    }
+  }
+
   public static interface Visitor<T> {
     T visitBinaryExpr(Binary expr);
     T visitUnaryExpr(Unary expr);
@@ -114,5 +133,6 @@ public abstract class Expr {
     T visitVariableExpr(Variable expr);
     T visitAssignExpr(Assign expr);
     T visitLogicalExpr(Logical expr);
+    T visitCallExpr(Call expr);
   }
 }

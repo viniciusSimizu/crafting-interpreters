@@ -91,6 +91,38 @@ public abstract class Stmt {
     }
   }
 
+  public static class Function extends Stmt {
+    public Token name;
+    public List<Token> params;
+    public List<Stmt> body;
+
+    public Function(Token name, List<Token> params, List<Stmt> body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitFunctionStmt(this);
+    }
+  }
+
+  public static class Return extends Stmt {
+    public Token keyword;
+    public Expr value;
+
+    public Return(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitReturnStmt(this);
+    }
+  }
+
   public static interface Visitor<T> {
     T visitExpressionStmt(Expression stmt);
     T visitPrintStmt(Print stmt);
@@ -98,5 +130,7 @@ public abstract class Stmt {
     T visitBlockStmt(Block stmt);
     T visitIfStmt(If stmt);
     T visitWhileStmt(While stmt);
+    T visitFunctionStmt(Function stmt);
+    T visitReturnStmt(Return stmt);
   }
 }
