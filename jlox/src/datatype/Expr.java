@@ -89,6 +89,23 @@ public abstract class Expr {
     }
   }
 
+  public static class Logical extends Expr {
+    public Expr left;
+    public Token operator;
+    public Expr right;
+
+    public Logical(Expr left, Token operator, Expr right) {
+      this.left = left;
+      this.operator = operator;
+      this.right = right;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitLogicalExpr(this);
+    }
+  }
+
   public static interface Visitor<T> {
     T visitBinaryExpr(Binary expr);
     T visitUnaryExpr(Unary expr);
@@ -96,5 +113,6 @@ public abstract class Expr {
     T visitGroupingExpr(Grouping expr);
     T visitVariableExpr(Variable expr);
     T visitAssignExpr(Assign expr);
+    T visitLogicalExpr(Logical expr);
   }
 }

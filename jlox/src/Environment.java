@@ -18,12 +18,12 @@ public class Environment {
   }
 
   public void define(String name, Object value) {
-    this.values.put(name, value);
+    values.put(name, value);
   }
 
   public Object get(Token name) {
-    if (this.values.containsKey(name.lexeme)) {
-      return this.values.get(name.lexeme);
+    if (values.containsKey(name.lexeme)) {
+      return values.get(name.lexeme);
     }
 
     if (enclosing != null) return enclosing.get(name);

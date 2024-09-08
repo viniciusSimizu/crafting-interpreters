@@ -1,6 +1,7 @@
 package src;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import src.datatype.Expr;
@@ -43,7 +44,7 @@ public class Parser {
     Expr initializer = null;
 
     if (match(TokenType.EQUAL)) {
-      initializer = this.expression();
+      initializer = expression();
     }
     consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Stmt.Var(name, initializer);
@@ -52,6 +53,9 @@ public class Parser {
   private Stmt statement() {
     if (match(TokenType.PRINT)) return printStatement();
     if (match(TokenType.OPEN_BRACE)) return new Stmt.Block(block());
+    if (match(TokenType.IF)) return ifStatement();;
+    if (match(TokenType.WHILE)) return whileStatement();;
+    if (match(TokenType.FOR)) return forStatement();;
 
     return expressionStatement();
   }
@@ -60,6 +64,72 @@ public class Parser {
     Expr expr = expression();
     consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(expr);
+  }
+
+  private Stmt ifStatement() {
+    consume(TokenType.OPEN_PAREN, "Expect '(' after 'if'.");
+    Expr condition = expression();
+    consume(TokenType.CLOSE_PAREN, "Expect ')' after 'if' condition.");
+
+    Stmt thenBranch = statement();
+    Stmt elseBranch = null;
+    if (match(TokenType.ELSE)) {
+      elseBranch = statement();
+    }
+
+    return new Stmt.If(condition, thenBranch, elseBranch);
+  }
+
+  private Stmt whileStatement() {
+    consume(TokenType.OPEN_PAREN, "Expect '(' after 'while'.");
+    Expr condition = expression();
+    consume(TokenType.CLOSE_PAREN, "Expect ')' after 'while' condition.");
+
+    Stmt body = statement();
+    return new Stmt.While(condition, body);
+  }
+
+  private Stmt forStatement() {
+    consume(TokenType.OPEN_PAREN, "Expect '(' after 'for'.");
+
+    Stmt initializer = null;
+    if (check(TokenType.VAR)) {
+      initializer = varDeclaration();
+    } else if (!check(TokenType.SEMICOLON)) {
+      initializer = expressionStatement();
+    }
+    consume(TokenType.SEMICOLON, "Expect ';' after loop initializer.");
+
+    Expr condition = null;
+    if (!check(TokenType.SEMICOLON)) {
+      condition = expression();
+    }
+    consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+    Expr increment = null;
+    if (!check(TokenType.CLOSE_PAREN)) {
+      increment = expression();
+    }
+    consume(TokenType.CLOSE_PAREN, "Expect ')' after 'for' clauses.");
+
+    Stmt body = statement();
+
+    if (increment != null) {
+      body = new Stmt.Block(Arrays.asList(
+	    body,
+	    new Stmt.Expression(increment)));
+    }
+
+    if (condition == null) condition = new Expr.Literal(true);
+    body = new Stmt.While(condition, body);
+
+    if (initializer != null) {
+      body = new Stmt.Block(Arrays.asList(
+	    initializer,
+	    body));
+    }
+
+    return body;
   }
 
   private Stmt expressionStatement() {
@@ -73,10 +143,10 @@ public class Parser {
   }
 
   private Expr assignment() {
-    Expr expr = equality();
+    Expr expr = or();
     if (match(TokenType.EQUAL)) {
       Token equals = previous();
-      Expr value = this.expression();
+      Expr value = expression();
 
       if (!(expr instanceof Expr.Variable)) {
 	error(equals, "Invalid assignment target.");
@@ -84,6 +154,30 @@ public class Parser {
 
       Expr.Variable var = (Expr.Variable) expr;
       return new Expr.Assign(var.name, value);
+    }
+
+    return expr;
+  }
+
+  private Expr or() {
+    Expr expr = and();
+
+    while (match(TokenType.OR)) {
+      Token operator = previous();
+      Expr right = and();
+      expr = new Expr.Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  private Expr and() {
+    Expr expr = equality();
+
+    while (match(TokenType.AND)) {
+      Token operator = previous();
+      Expr right = equality();
+      expr = new Expr.Logical(expr, operator, right);
     }
 
     return expr;

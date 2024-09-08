@@ -59,10 +59,44 @@ public abstract class Stmt {
     }
   }
 
+  public static class If extends Stmt {
+    public Expr condition;
+    public Stmt thenBranch;
+    public Stmt elseBranch;
+
+    public If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitIfStmt(this);
+    }
+  }
+
+  public static class While extends Stmt {
+    public Expr condition;
+    public Stmt body;
+
+    public While(Expr condition, Stmt body) {
+      this.condition = condition;
+      this.body = body;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitWhileStmt(this);
+    }
+  }
+
   public static interface Visitor<T> {
     T visitExpressionStmt(Expression stmt);
     T visitPrintStmt(Print stmt);
     T visitVarStmt(Var stmt);
     T visitBlockStmt(Block stmt);
+    T visitIfStmt(If stmt);
+    T visitWhileStmt(While stmt);
   }
 }

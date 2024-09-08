@@ -41,157 +41,157 @@ class Lexer {
   }
 
   public List<Token> scanTokens() {
-    while (!this.isEOF()) {
-      this.start = this.curr;
-      this.scanToken();
+    while (!isEOF()) {
+      start = curr;
+      scanToken();
     }
-    this.addToken(TokenType.EOF);
-    return this.tokens;
+    addToken(TokenType.EOF);
+    return tokens;
   }
 
   private void scanToken() {
-    char chr = this.advance();
+    char chr = advance();
     switch (chr) {
       case ' ':
       case '\r':
       case '\t': break;
 
-      case '\n': ++this.line; break;
+      case '\n': ++line; break;
 
-      case '(':	this.addToken(TokenType.OPEN_PAREN); break;
-      case ')':	this.addToken(TokenType.CLOSE_PAREN); break;
-      case '{':	this.addToken(TokenType.OPEN_BRACE); break;
-      case '}':	this.addToken(TokenType.CLOSE_BRACE); break;
-      case ',':	this.addToken(TokenType.COMMA); break;
-      case '.':	this.addToken(TokenType.DOT); break;
-      case '+':	this.addToken(TokenType.PLUS); break;
-      case '-':	this.addToken(TokenType.MINUS); break;
-      case '*':	this.addToken(TokenType.STAR); break;
-      case '/':	this.addToken(TokenType.SLASH); break;
-      case ';':	this.addToken(TokenType.SEMICOLON); break;
+      case '(':	addToken(TokenType.OPEN_PAREN); break;
+      case ')':	addToken(TokenType.CLOSE_PAREN); break;
+      case '{':	addToken(TokenType.OPEN_BRACE); break;
+      case '}':	addToken(TokenType.CLOSE_BRACE); break;
+      case ',':	addToken(TokenType.COMMA); break;
+      case '.':	addToken(TokenType.DOT); break;
+      case '+':	addToken(TokenType.PLUS); break;
+      case '-':	addToken(TokenType.MINUS); break;
+      case '*':	addToken(TokenType.STAR); break;
+      case '/':	addToken(TokenType.SLASH); break;
+      case ';':	addToken(TokenType.SEMICOLON); break;
 
       case '=':
-		if (this.match('=')) {
-		  this.addToken(TokenType.EQUAL_EQUAL);
+		if (match('=')) {
+		  addToken(TokenType.EQUAL_EQUAL);
 		} else {
-		  this.addToken(TokenType.EQUAL);
+		  addToken(TokenType.EQUAL);
 		};
 		break;
       case '!':
-		if (this.match('=')) {
-		  this.addToken(TokenType.BANG_EQUAL);
+		if (match('=')) {
+		  addToken(TokenType.BANG_EQUAL);
 		} else {
-		  this.addToken(TokenType.BANG);
+		  addToken(TokenType.BANG);
 		};
 		break;
       case '>':
-		if (this.match('=')) {
-		  this.addToken(TokenType.GREATER_EQUAL);
+		if (match('=')) {
+		  addToken(TokenType.GREATER_EQUAL);
 		} else {
-		  this.addToken(TokenType.GREATER);
+		  addToken(TokenType.GREATER);
 		};
 		break;
       case '<':
-		if (this.match('=')) {
-		  this.addToken(TokenType.LESS_EQUAL);
+		if (match('=')) {
+		  addToken(TokenType.LESS_EQUAL);
 		} else {
-		  this.addToken(TokenType.LESS);
+		  addToken(TokenType.LESS);
 		};
 		break;
 
-      case '"':	this.string(); break;
+      case '"':	string(); break;
 
       default:
-		if (this.isDigit(chr)) {
-		  this.number();
+		if (isDigit(chr)) {
+		  number();
 		  break;
 		};
 
-		if (this.isAlpha(chr)) {
-		  this.identifier();
+		if (isAlpha(chr)) {
+		  identifier();
 		  break;
 		};
 
-		Lox.error(this.line, "Unexpected character.");
+		Lox.error(line, "Unexpected character.");
 		break;
     }
   }
 
   private void string() {
-    this.start = this.curr - 1;
-    while (!this.isEOF() && this.peek() != '"') {
-      if (this.peek() == '\n') ++this.line;
-      this.advance();
+    start = curr - 1;
+    while (!isEOF() && peek() != '"') {
+      if (peek() == '\n') ++line;
+      advance();
     };
 
-    if (this.isEOF()) {
-      Lox.error(this.line, "Unterminated string.");
+    if (isEOF()) {
+      Lox.error(line, "Unterminated string.");
       return;
     };
 
-    this.advance();
+    advance();
 
-    String literal = this.source.substring(this.start + 1, this.curr - 1);
-    this.addToken(TokenType.STRING, literal);
+    String literal = source.substring(start + 1, curr - 1);
+    addToken(TokenType.STRING, literal);
   };
 
   private void number() {
-    this.start = this.curr - 1;
-    while (this.isDigit(this.peek())) this.advance();
+    start = curr - 1;
+    while (isDigit(peek())) advance();
 
-    if (this.peek() == '.' && this.isDigit(this.peekNext())) {
-      this.advance();
-      while (this.isDigit(this.peek())) this.advance();
+    if (peek() == '.' && isDigit(peekNext())) {
+      advance();
+      while (isDigit(peek())) advance();
     };
 
-    String literal = this.source.substring(this.start, this.curr);
-    this.addToken(TokenType.NUMBER, Double.parseDouble(literal));
+    String literal = source.substring(start, curr);
+    addToken(TokenType.NUMBER, Double.parseDouble(literal));
   };
 
   private void identifier() {
-    this.start = this.curr - 1;
+    start = curr - 1;
 
-    while (this.isAlphaNumeric(this.peek())) this.advance();
-    String lexeme = this.source.substring(this.start, this.curr);
+    while (isAlphaNumeric(peek())) advance();
+    String lexeme = source.substring(start, curr);
     TokenType token = Lexer.keywords.get(lexeme);
 
     if (token == null) token = TokenType.IDENTIFIER;
-    this.addToken(token);
+    addToken(token);
   };
 
   private void addToken(TokenType type) {
-    this.addToken(type, null);
+    addToken(type, null);
   }
 
   private void addToken(TokenType type, Object literal) {
-    String lexeme = this.source.substring(this.start, this.curr);
-    this.tokens.add(new Token(type, lexeme, literal, this.line));
+    String lexeme = source.substring(start, curr);
+    tokens.add(new Token(type, lexeme, literal, line));
   }
 
   private char advance() {
-    return this.source.charAt(this.curr++);
+    return source.charAt(curr++);
   }
 
   private boolean match(char chr) {
-    if (this.peek() == chr) {
-      this.advance();
+    if (peek() == chr) {
+      advance();
       return true;
     };
     return false;
   };
 
   private char peek() {
-    if (this.isEOF()) {
+    if (isEOF()) {
       return '\0';
     };
-    return this.source.charAt(this.curr);
+    return source.charAt(curr);
   }
 
   private char peekNext() {
-    if (this.curr + 1 >= this.source.length()) {
+    if (curr + 1 >= source.length()) {
       return '\0';
     };
-    return this.source.charAt(this.curr + 1);
+    return source.charAt(curr + 1);
   }
 
   private boolean isDigit(char chr) {
@@ -209,10 +209,10 @@ class Lexer {
   }
 
   private boolean isAlphaNumeric(char chr) {
-    return this.isAlpha(chr) || this.isDigit(chr);
+    return isAlpha(chr) || isDigit(chr);
   };
 
   private boolean isEOF() {
-    return this.curr >= this.source.length();
+    return curr >= source.length();
   }
 };
