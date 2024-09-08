@@ -1,5 +1,7 @@
 package src.datatype;
 
+import java.util.List;
+
 public abstract class Stmt {
   public abstract <T> T accept(Visitor<T> visitor);
 
@@ -40,8 +42,20 @@ public abstract class Stmt {
 
     @Override
     public <T> T accept(Visitor<T> visitor) {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'accept'");
+      return visitor.visitVarStmt(this);
+    }
+  }
+
+  public static class Block extends Stmt {
+    public List<Stmt> statements;
+
+    public Block(List<Stmt> statements) {
+      this.statements = statements;
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+      return visitor.visitBlockStmt(this);
     }
   }
 
@@ -49,5 +63,6 @@ public abstract class Stmt {
     T visitExpressionStmt(Expression stmt);
     T visitPrintStmt(Print stmt);
     T visitVarStmt(Var stmt);
+    T visitBlockStmt(Block stmt);
   }
 }

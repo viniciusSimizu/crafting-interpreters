@@ -50,9 +50,9 @@ public class Parser {
   }
 
   private Stmt statement() {
-    if (match(TokenType.PRINT)) {
-      return printStatement();
-    }
+    if (match(TokenType.PRINT)) return printStatement();
+    if (match(TokenType.OPEN_BRACE)) return new Stmt.Block(block());
+
     return expressionStatement();
   }
 
@@ -162,6 +162,17 @@ public class Parser {
     }
 
     throw error(peek(), "Expect expression.");
+  }
+
+  private List<Stmt> block() {
+    List<Stmt> statements = new ArrayList<>();
+
+    while (!check(TokenType.CLOSE_BRACE) && !isAtEnd()) {
+      statements.add(statement());
+    }
+
+    consume(TokenType.CLOSE_BRACE, "Expect '}' after block.");
+    return statements;
   }
 
   private void synchronize() {

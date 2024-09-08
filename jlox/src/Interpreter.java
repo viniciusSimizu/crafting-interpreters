@@ -3,8 +3,6 @@ package src;
 import java.util.List;
 
 import src.datatype.Expr;
-import src.datatype.Expr.Assign;
-import src.datatype.Expr.Variable;
 import src.datatype.Stmt;
 import src.datatype.Token;
 
@@ -32,6 +30,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
+  public Void visitPrintStmt(Stmt.Print stmt) {
+    Object value = this.evaluate(stmt.expression);
+    System.out.println(this.stringfy(value));
+    return null;
+  }
+
+  @Override
   public Void visitVarStmt(Stmt.Var stmt) {
     Object value = null;
     if (stmt.initializer != null) {
@@ -43,9 +48,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Void visitPrintStmt(Stmt.Print stmt) {
-    Object value = this.evaluate(stmt.expression);
-    System.out.println(this.stringfy(value));
+  public Void visitBlockStmt(Stmt.Block stmt) {
+    executeBlock(stmt.statements, new Environment(environment));
     return null;
   }
 
@@ -133,15 +137,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 
   @Override
-  public Object visitVariableExpr(Variable expr) {
+  public Object visitVariableExpr(Expr.Variable expr) {
     return environment.get(expr.name);
   }
 
   @Override
-  public Object visitAssignExpr(Assign expr) {
+  public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr);
     environment.assign(expr.name, value);
     return value;
+  }
+
+  private void executeBlock(List<Stmt> statements, Environment environment) {
+    this.environment = environment;
+
+    try {
+      for (Stmt stmt : statements) {
+	execute(stmt);
+      }
+    } finally {
+      this.environment = environment.enclosing;
+    }
   }
 
   private Object evaluate(Expr expr) {
